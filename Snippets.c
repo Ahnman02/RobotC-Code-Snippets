@@ -8,7 +8,7 @@ void gyroFunction(int speed, int degrees)
 	int turnTo = SensorValue[gryo] + degrees;
 
 }
-
+//test
 
 //ultrasonic
 
@@ -38,6 +38,7 @@ int LSFunction()
 }
 
 //PID
+int lastError = 0;
 // lastError can either be a global, or passed and returned
 // from the function
 //returns value in distance/rotation
@@ -59,6 +60,8 @@ int PIDFunction(int requested, int lastError)
 	int outputPower = error * pGain + diffError * dGain;
 
 	motor[port1] = outputPower;
+
+	//return lastError;
 }
 
 //Encoder
@@ -131,3 +134,82 @@ void moveUntilColor(int leftmotorPower, int rightmotorPower, int grayscale)
 
 
 //Remote Controls
+
+void setMotorPower(tMotor motorToSet, TVexJoysticks channel, int deadzone = 20)
+{
+	motor[motorToSet] = abs(channel) > deadzone ? channel : 0;
+
+	//if(abs(channel) > deadzone)
+	//{
+	//	motor[motorToSet] = channel;
+	//}
+	//else
+	//{
+	//	motor[motorToSet] = 0;
+	//}
+}
+
+void tankDrive()
+{
+	setMotorPower(leftFrontMotor, vexRT[Ch3]);
+	setMotorPower(leftBackMotor, vexRT[Ch3]);
+	setMotorPower(rightFrontMotor, vexRT[Ch2]);
+	setMotorPower(rightBackMotor, vexRT[Ch2]);
+}
+
+bool hitLimit = false;
+int time = 0;
+
+void liftControl()
+{
+	//TODO: Make this work
+	int outputVal = 0;
+	if (vexRT[Btn5D])
+	{
+		outputVal = -60;
+	}
+	else if (vexRT[Btn5U])
+	{
+		outputVal = 75;
+	}
+	else
+	{
+		outputVal = 0;
+	}
+
+	if (SensorValue[downLimit] == 1 && outputVal < 0)
+	{
+		//hitLimit = true;
+		//time1[T1] = 0;
+		outputVal = 0;
+	}
+	else if (SensorValue[upLimit] == 1 && outputVal > 0)
+	{
+		//hitLimit = false;
+		outputVal = 0;
+	}
+
+	/*
+	if (hitLimit)
+	{
+		outputVal = 10;
+	}
+
+	if (time1[T1] > 500)
+	{
+		hitLimit = false;
+	}
+	*/
+
+	motor[liftMotor] = outputVal;
+}
+
+task main()
+{
+	time1[T1] = 0;
+	while(true)
+	{
+		tankDrive();
+		liftControl();
+	}
+}
